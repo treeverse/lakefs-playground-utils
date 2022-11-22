@@ -6,7 +6,7 @@ with open('README.md') as file:
     long_description = file.read()
 
 setup(
-    name='playground',
+    name='lakefs-playground-utils',
     version='0.0.1',
     description = 'lakeFS Playground Utilities',
     author = 'Or Tzabary',
@@ -16,6 +16,7 @@ setup(
     keywords = 'lakefs playground',
     platforms = ['any'],
     long_description = long_description,
+    long_description_content_type = 'text/markdown',
     install_requires=[
         'fsspec>=2021.11.0',
         'requests>=2.0.0'
