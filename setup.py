@@ -6,7 +6,7 @@ with open('README.md') as file:
     long_description = file.read()
 
 setup(
-    name='lakefs-playground-utils',
+    name='playground',
     version='0.0.1',
     description = 'lakeFS Playground Utilities',
     author = 'Or Tzabary',
