@@ -6,8 +6,8 @@ with open('README.md') as file:
     long_description = file.read()
 
 setup(
-    name='lakefs-playground-utils',
-    version='0.0.2',
+    name = 'lakefs-playground-utils',
+    version = '0.0.3',
     description = 'lakeFS Playground Utilities',
     author = 'Or Tzabary',
     author_email = 'or.tzabary@treeverse.io',
@@ -17,9 +17,9 @@ setup(
     platforms = ['any'],
     long_description = long_description,
     long_description_content_type = 'text/markdown',
-    install_requires=[
-        'fsspec>=2021.11.0',
-        'requests>=2.0.0'
-        'lakefs-client==0.85.0',
+    install_requires = [
+    'fsspec>=2021.11.0',
+    'requests>=2.0.0'
+    'lakefs-client>=0.85.0',
     ],
 )
