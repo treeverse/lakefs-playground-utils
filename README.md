@@ -5,7 +5,7 @@
 ```python
 >>> !pip install lakefs-playground-utils # Syntax used in Google Colab, might be different for Jupyter, Databricks, etc.
 >>> 
->>> import lakefs-playground-utils as playground
+>>> import playground
 >>> conn = playground.get_or_create('myemail@example.com') # Creates a lakeFS playground environment, or returns an existing one
 >>> playground.mount(conn) # Sets up a `lakefs://` protocol handler for pandas, pre-configured to read+write from our playground environment
 ```
