@@ -17,6 +17,9 @@ def _split_path(path: str) -> Tuple[str, str, str]:
     return repo, ref, rest
 
 
+def _remove_suffix(s: str, suffix: str) -> str:
+    return s if not s.endswith(suffix) else s[:len(s)-len(suffix)]
+
 def _object_stat_to_entry(repo, ref, stat):
     path = stat.get('path')
     key = f'{repo}/{ref}/{path}'
@@ -32,8 +35,8 @@ def _object_stat_to_entry(repo, ref, stat):
             'LastModified': datetime.datetime.fromtimestamp(stat.get('mtime'), datetime.timezone.utc),
         }
     return {
-        'Key': key.removesuffix('/'),
-        'name': key.removesuffix('/'),
+        'Key': _remove_suffix(key, '/'),
+        'name': _remove_suffix(key, '/'),
         'size': 0,
         'Size': 0,
         'StorageClass': 'DIRECTORY',
@@ -71,10 +74,10 @@ class LakeFSNativeFS(AbstractFileSystem):
 
         if detail:
             return [ _object_stat_to_entry(repo, ref, f) for f in records ]
-        return [ 
-            f'{repo}/{ref}/{d["path"]}'.removesuffix('/')
+        return [
+            _remove_suffix(f'{repo}/{ref}/{d["path"]}', '/')
             if d.get('path_type') == 'object'
-            else  f'{repo}/{ref}/{d["path"]}'
+            else f'{repo}/{ref}/{d["path"]}'
             for d in records 
         ]
 
