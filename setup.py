@@ -7,7 +7,7 @@ with open('README.md') as file:
 
 setup(
     name = 'lakefs-playground-utils',
-    version = '0.0.5',
+    version = '0.0.6',
     description = 'lakeFS Playground Utilities',
     author = 'Or Tzabary',
     author_email = 'or.tzabary@treeverse.io',
