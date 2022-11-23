@@ -1,7 +1,7 @@
 from .config import PlaygroundDetails
 from .fs import register_fs
 
-PLAYGROUND_CONTROL_PLANE_URL = "https://demo-ort.lakefs.dev/api/v1/notebook"
+PLAYGROUND_CONTROL_PLANE_URL = "https://demo.lakefs.io/api/v1/notebook"
 
 
 class LakeFSPlaygroundError(RuntimeError):
