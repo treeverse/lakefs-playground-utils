@@ -7,7 +7,7 @@ from fsspec import register_implementation
 from fsspec.spec import AbstractFileSystem, AbstractBufferedFile
 
 import lakefs_client
-from lakefs_client.api import objects_api, repositories_api
+from lakefs_client.client import LakeFSClient
 
 
 def _split_path(path: str) -> Tuple[str, str, str]:
@@ -56,9 +56,7 @@ class LakeFSNativeFS(AbstractFileSystem):
         self._client_configuration = lakefs_client.Configuration(
             host=f"https://{host}/api/v1", username=key, password=secret
         )
-        self._client = lakefs_client.ApiClient(self._client_configuration)
-        self._objects = objects_api.ObjectsApi(self._client)
-        self._repos = repositories_api.RepositoriesApi(self._client)
+        self._client = LakeFSClient(self._client_configuration)
 
     def ls(self, path, detail=True, **kwargs):
         repo, ref, key = _split_path(path)
@@ -71,7 +69,7 @@ class LakeFSNativeFS(AbstractFileSystem):
             kwargs = {"prefix": key, "delimiter": "/"}
             if after is not None:
                 kwargs["after"] = after
-            current = self._objects.list_objects(repo, ref, **kwargs)
+            current = self._client.objects.list_objects(repo, ref, **kwargs)
             records += current.get("results")
             if not current.get("pagination").get("has_more"):
                 break  # Done
@@ -118,7 +116,7 @@ class LakeFSNativeFS(AbstractFileSystem):
                 self._rm(file)
             return
         repo, ref, key = _split_path(path)
-        self._objects.delete_object(repo, ref, key)
+        self._client.objects.delete_object(repo, ref, key)
         self.invalidate_cache(self._parent(path))
 
     def rm(self, path: Union[str, List[str]], recursive=False, maxdepth=None):
@@ -133,10 +131,10 @@ class LakeFSNativeFS(AbstractFileSystem):
 
         def chunks(lst: list, num: int):
             for i in range(0, len(lst), num):
-                yield lst[i : i + num]
+                yield lst[i:i + num]
 
         for files in chunks(path_expand, 1000):
-            self._objects.delete_objects(repo, ref, files)
+            self._client.objects.delete_objects(repo, ref, files)
 
         self.invalidate_cache(self._parent(path))
 
@@ -154,7 +152,7 @@ class LakeFSNativeFS(AbstractFileSystem):
             os.makedirs(lpath, exist_ok=True)
             return None
         repo, ref, key = _split_path(rpath)
-        return self._objects.get_object(repo, ref, key)
+        return self._client.objects.get_object(repo, ref, key)
 
     def put_file(self, lpath, rpath, callback=None, **kwargs):
         if os.path.isdir(lpath):
@@ -162,7 +160,7 @@ class LakeFSNativeFS(AbstractFileSystem):
         else:
             repo, ref, key = _split_path(rpath)
             with open(lpath, "rb") as out_file:
-                self._objects.upload_object(repo, ref, key, content=out_file)
+                self._client.objects.upload_object(repo, ref, key, content=out_file)
         self.invalidate_cache(self._parent(rpath))
 
     def created(self, path):
@@ -172,7 +170,7 @@ class LakeFSNativeFS(AbstractFileSystem):
             raise NotImplementedError("lakeFS objects have no created timestamp")
         if ref:
             raise NotImplementedError("lakeFS Refs have no created timestamp")
-        repo_info = self._repos.get_repository(repo)
+        repo_info = self._client.repositories.get_repository(repo)
         timestamp = repo_info.get("creation_date")
         return datetime.date.fromtimestamp(timestamp)
 
@@ -185,7 +183,7 @@ class LakeFSNativeFS(AbstractFileSystem):
         """
         repo, ref, key = _split_path(path)
         try:
-            stream = self._objects.get_object(repo, ref, key)
+            stream = self._client.objects.get_object(repo, ref, key)
             data = stream.read()
         except Exception as e:
             raise ValueError(f'Error reading path: {path}: {e}')
@@ -201,7 +199,7 @@ class LakeFSNativeFS(AbstractFileSystem):
 
     def isfile(self, path):
         repo, ref, key = _split_path(path)
-        stat = self._objects.stat_object(repo, ref, key)
+        stat = self._client.objects.stat_object(repo, ref, key)
         return stat.get("path_type") == "object"
 
     def touch(self, path, truncate=True, **kwargs):
@@ -213,7 +211,7 @@ class LakeFSNativeFS(AbstractFileSystem):
     def pipe_file(self, path, value, **kwargs):
         """Set the bytes of given file"""
         repo, ref, key = _split_path(path)
-        self._objects.upload_object(repo, ref, key)
+        self._client.objects.upload_object(repo, ref, key)
         self.invalidate_cache(self._parent(path))
 
     def invalidate_cache(self, path=None):

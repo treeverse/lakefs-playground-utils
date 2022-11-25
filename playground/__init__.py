@@ -1,4 +1,5 @@
 import lakefs_client
+from lakefs_client.client import LakeFSClient
 
 from .config import PlaygroundDetails
 from .fs import register_fs
@@ -33,7 +34,7 @@ class LakeFSPlaygroundError(RuntimeError):
     pass
 
 
-def get_or_create(email: str, silent: bool=False) -> PlaygroundDetails:
+def get_or_create(email: str, silent: bool = False) -> PlaygroundDetails:
     """
     Create a new ephemeral lakeFS Playground environment, or return an existing one
     for the specified email, if exists
@@ -73,7 +74,7 @@ def mount(details: PlaygroundDetails):
     register_fs(details=details)
 
 
-def client(details: PlaygroundDetails) -> lakefs_client.ApiClient:
+def client(details: PlaygroundDetails) -> LakeFSClient:
     """
     Get an API client configured from the details provided
     :param details: PlaygroundDetails object with information about the lakeFS installation
@@ -85,4 +86,4 @@ def client(details: PlaygroundDetails) -> lakefs_client.ApiClient:
         username=details.access_key_id,
         password=details.secret_access_key
     )
-    return lakefs_client.ApiClient(conf)
+    return LakeFSClient(conf)
