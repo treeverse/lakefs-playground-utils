@@ -4,7 +4,6 @@ from .fs import register_fs
 PLAYGROUND_CONTROL_PLANE_URL = "https://demo.lakefs.io/api/v1/notebook"
 
 WELCOME_BANNER = """
-
      ██╗      █████╗ ██╗  ██╗███████╗███████╗███████╗
      ██║     ██╔══██╗██║ ██╔╝██╔════╝██╔════╝██╔════╝
      ██║     ███████║█████╔╝ █████╗  █████╗  ███████╗
