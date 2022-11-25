@@ -62,6 +62,9 @@ class LakeFSNativeFS(AbstractFileSystem):
 
     def ls(self, path, detail=True, **kwargs):
         repo, ref, key = _split_path(path)
+        return self._ls(repo, ref, key, detail, **kwargs)
+
+    def _ls(self, repo, ref, key, detail=True, **kwargs):
         records = []
         after = None
         while True:
@@ -73,6 +76,12 @@ class LakeFSNativeFS(AbstractFileSystem):
             if not current.get("pagination").get("has_more"):
                 break  # Done
             after = current.get("pagination").get("next_offset")
+
+        # handle directories when not passing a trailing '/':
+        if len(records) == 1:
+            r = records[0]
+            if r.get('path').endswith('/') and r.get('path_type') != 'object':
+                return self._ls(repo, ref, key + '/')
 
         if detail:
             return [_object_stat_to_entry(repo, ref, f) for f in records]
@@ -175,8 +184,11 @@ class LakeFSNativeFS(AbstractFileSystem):
         Return object bytes in range
         """
         repo, ref, key = _split_path(path)
-        stream = self._objects.get_object(repo, ref, key)
-        data = stream.read()
+        try:
+            stream = self._objects.get_object(repo, ref, key)
+            data = stream.read()
+        except Exception as e:
+            raise ValueError(f'Error reading path: {path}: {e}')
         # TODO(remove this once a release that includes
         #  https://github.com/treeverse/lakeFS/pull/4623 is available on Pypi)
         if start is not None and end is not None:
@@ -186,6 +198,11 @@ class LakeFSNativeFS(AbstractFileSystem):
         if end is not None and end <= len(data):
             return data[:end]
         return data
+
+    def isfile(self, path):
+        repo, ref, key = _split_path(path)
+        stat = self._objects.stat_object(repo, ref, key)
+        return stat.get("path_type") == "object"
 
     def touch(self, path, truncate=True, **kwargs):
         if truncate or not self.exists(path):
