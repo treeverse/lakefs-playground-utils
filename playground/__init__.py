@@ -1,3 +1,5 @@
+import lakefs_client
+
 from .config import PlaygroundDetails
 from .fs import register_fs
 
@@ -69,3 +71,18 @@ def mount(details: PlaygroundDetails):
         (as returned from get_or_create)
     """
     register_fs(details=details)
+
+
+def client(details: PlaygroundDetails) -> lakefs_client.ApiClient:
+    """
+    Get an API client configured from the details provided
+    :param details: PlaygroundDetails object with information about the lakeFS installation
+        (as returned from get_or_create)
+    :return: a lakefs_client.ApiClient configured to use the provided details
+    """
+    conf = lakefs_client.Configuration(
+        host=f"https://{details.endpoint_url}/api/v1",
+        username=details.access_key_id,
+        password=details.secret_access_key
+    )
+    return lakefs_client.ApiClient(conf)
