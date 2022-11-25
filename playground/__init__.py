@@ -3,12 +3,43 @@ from .fs import register_fs
 
 PLAYGROUND_CONTROL_PLANE_URL = "https://demo.lakefs.io/api/v1/notebook"
 
+WELCOME_BANNER = """
+
+     ██╗      █████╗ ██╗  ██╗███████╗███████╗███████╗
+     ██║     ██╔══██╗██║ ██╔╝██╔════╝██╔════╝██╔════╝
+     ██║     ███████║█████╔╝ █████╗  █████╗  ███████╗
+     ██║     ██╔══██║██╔═██╗ ██╔══╝  ██╔══╝  ╚════██║
+     ███████╗██║  ██║██║  ██╗███████╗██║     ███████║
+     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝
+
+│
+│ 🎉 Your lakeFS playground is ready and will be available for 24h! 🎉
+| 
+| ⚠️ Do keep in mind that this environment is for learning purposes only
+|
+│ 💡 Check out the lakeFS UI for your playground environment at:
+|        URL: https://{host}/
+|        Access Key ID: {key}
+|        Secret Access Key: {secret}
+| 
+│ 📖 Documentation and resources are available at https://docs.lakefs.io/ 
+│ 👩‍💻 For support or any other question, join the lakeFS Slack channel at https://docs.lakefs.io/slack
+|
+"""
+
 
 class LakeFSPlaygroundError(RuntimeError):
     pass
 
 
-def get_or_create(email: str) -> PlaygroundDetails:
+def get_or_create(email: str, silent: bool=False) -> PlaygroundDetails:
+    """
+    Create a new ephemeral lakeFS Playground environment, or return an existing one
+    for the specified email, if exists
+    :param email: The email used to create the environment
+    :param silent: if False, will print a friendly banner
+    :return: a PlaygroundDetails object that contains information about the environment
+    """
     import requests
     import base64
     import json
@@ -21,12 +52,21 @@ def get_or_create(email: str) -> PlaygroundDetails:
     message_bytes = base64.b64decode(resp.content)
     message = json.loads(message_bytes.decode("ascii"))
 
-    return PlaygroundDetails(
+    details = PlaygroundDetails(
         access_key_id=message["LakeFSCreds"]["AccessKeyID"],
         secret_access_key=message["LakeFSCreds"]["SecretAccessKey"],
         endpoint_url=message["Host"],
     )
+    if not silent:
+        print(WELCOME_BANNER.format(
+            host=details.endpoint_url, key=details.access_key_id, secret=details.secret_access_key))
+    return details
 
 
 def mount(details: PlaygroundDetails):
+    """
+    Register a `lakefs://` URI handler with fsspec (used by pandas and other common data tools)
+    :param details: PlaygroundDetails object with information about the lakeFS installation
+        (as returned from get_or_create)
+    """
     register_fs(details=details)
