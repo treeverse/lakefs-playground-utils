@@ -1,5 +1,7 @@
 import lakefs_client
 from lakefs_client.client import LakeFSClient
+from email_validator import validate_email, EmailNotValidError
+
 
 from .config import PlaygroundDetails
 from .fs import register_fs
@@ -32,6 +34,19 @@ WELCOME_BANNER = """
 
 class LakeFSPlaygroundError(RuntimeError):
     pass
+
+
+def check_email(email_addr: str) -> bool:
+    """
+    Make sure that the given email address is valid
+    :param email_addr: email address
+    :return: True if a valid email address was given, False otherwise
+    """
+    try:
+        validate_email(email_addr)
+    except EmailNotValidError:
+        return False
+    return True
 
 
 def get_or_create(email: str, silent: bool = False) -> PlaygroundDetails:
