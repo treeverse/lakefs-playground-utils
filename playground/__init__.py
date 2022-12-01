@@ -1,3 +1,6 @@
+import os.path
+
+import yaml
 import lakefs_client
 from lakefs_client.client import LakeFSClient
 from email_validator import validate_email, EmailNotValidError
@@ -6,6 +9,8 @@ from email_validator import validate_email, EmailNotValidError
 from .config import PlaygroundDetails
 from .fs import register_fs
 
+
+LAKECTL_CONFIG_LOCATION = '~/.lakectl.yaml'
 PLAYGROUND_CONTROL_PLANE_URL = "https://demo.lakefs.io/api/v1/notebook"
 
 WELCOME_BANNER = """
@@ -80,15 +85,6 @@ def get_or_create(email: str, silent: bool = False) -> PlaygroundDetails:
     return details
 
 
-def mount(details: PlaygroundDetails):
-    """
-    Register a `lakefs://` URI handler with fsspec (used by pandas and other common data tools)
-    :param details: PlaygroundDetails object with information about the lakeFS installation
-        (as returned from get_or_create)
-    """
-    register_fs(details=details)
-
-
 def client(details: PlaygroundDetails) -> LakeFSClient:
     """
     Get an API client configured from the details provided
@@ -102,3 +98,29 @@ def client(details: PlaygroundDetails) -> LakeFSClient:
         password=details.secret_access_key
     )
     return LakeFSClient(conf)
+
+
+def configure_cli(details: PlaygroundDetails):
+    """
+    Setup a ~/.lakectl.yaml file for the provided environment
+    :param details: PlaygroundDetails object with information about the lakeFS installation
+        (as returned from get_or_create)
+    """
+    with open(os.path.expanduser(LAKECTL_CONFIG_LOCATION), 'wb') as config_file:
+        yaml.safe_dump({
+            'endpoint_url': f'https://{details.endpoint_url}/api/v1',
+            'credentials': {
+                'access_key_id': details.access_key_id,
+                'secret_access_key': details.secret_access_key,
+            },
+        }, config_file)
+
+
+def mount(details: PlaygroundDetails):
+    """
+    Register a `lakefs://` URI handler with fsspec (used by pandas and other common data tools)
+    :param details: PlaygroundDetails object with information about the lakeFS installation
+        (as returned from get_or_create)
+    """
+    register_fs(details=details)
+    configure_cli(details=details)

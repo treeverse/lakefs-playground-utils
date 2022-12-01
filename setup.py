@@ -7,7 +7,7 @@ with open('README.md') as file:
 
 setup(
     name='lakefs-playground-utils',
-    version='0.0.11',
+    version='0.0.12',
     description='lakeFS Playground Utilities',
     author='Or Tzabary',
     author_email='or.tzabary@treeverse.io',
@@ -22,5 +22,6 @@ setup(
         'requests>=2.0.0',
         'lakefs-client>=0.85.0',
         'email-validator==1.3.0',
+        'PyYAML>=6.0',
     ],
 )
