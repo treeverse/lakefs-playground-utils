@@ -100,20 +100,21 @@ def client(details: PlaygroundDetails) -> LakeFSClient:
     return LakeFSClient(conf)
 
 
-def configure_cli(details: PlaygroundDetails):
+def configure_cli(details: PlaygroundDetails, destination=LAKECTL_CONFIG_LOCATION):
     """
     Setup a ~/.lakectl.yaml file for the provided environment
     :param details: PlaygroundDetails object with information about the lakeFS installation
         (as returned from get_or_create)
+    :param destination: location to write the configuration file to
     """
-    with open(os.path.expanduser(LAKECTL_CONFIG_LOCATION), 'wb') as config_file:
+    with open(os.path.expanduser(destination), 'w') as config_handle:
         yaml.safe_dump({
             'endpoint_url': f'https://{details.endpoint_url}/api/v1',
             'credentials': {
                 'access_key_id': details.access_key_id,
                 'secret_access_key': details.secret_access_key,
             },
-        }, config_file)
+        }, config_handle)
 
 
 def mount(details: PlaygroundDetails):
