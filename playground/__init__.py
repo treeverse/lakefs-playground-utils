@@ -109,7 +109,9 @@ def configure_cli(details: PlaygroundDetails, destination=LAKECTL_CONFIG_LOCATIO
     """
     with open(os.path.expanduser(destination), 'w') as config_handle:
         yaml.safe_dump({
-            'endpoint_url': f'https://{details.endpoint_url}/api/v1',
+            'server': {
+                'endpoint_url': f'https://{details.endpoint_url}/api/v1',
+            },
             'credentials': {
                 'access_key_id': details.access_key_id,
                 'secret_access_key': details.secret_access_key,
